@@ -3,8 +3,9 @@ import os
 
 # 从三个相机的合并图中抽取玻璃部分的轮廓
 
-root = "../data/241015_101025_566_4"
+# root = "../data/241015_101025_566_4"
 # root = "../data/241015_125935_725_16"
+root = "../data/241016_110832_917_13"
 
 image = cv2.imread(os.path.join(root, "kim", "original_image.png"), cv2.IMREAD_UNCHANGED)
 

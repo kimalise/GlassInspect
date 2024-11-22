@@ -6,8 +6,9 @@ import os
 # 以下算法模仿了halcon的dyn_threshold函数
 # 基本思路是判断原始图像和均值滤波后的图像之间的像素差异是否大于某一个阈值,如果是则认为是缺陷区域
 
-root = "../data/241015_125935_725_16"
+# root = "../data/241015_125935_725_16"
 # root = "../data/241015_101025_566_4"
+root = "../data/241016_110832_917_13"
 
 # 1. 读取图像
 # image_path = '/mnt/data/origin_glass_image.png'
@@ -30,7 +31,7 @@ dark_pixels = cv2.dilate(dark_pixels, dilate_kernel, iterations=1)
 num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(dark_pixels)
 
 min_area = 100
-max_area = 100000
+max_area = 1000000
 
 selected_regions = []
 for i in range(1, num_labels):
@@ -52,6 +53,11 @@ for region in selected_regions:
     selected_image_1 = np.zeros_like(dark_pixels, dtype=np.uint8)
     selected_image_1[labels == region] = 255
     cs, _ = cv2.findContours(selected_image_1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # 这里再次过滤一下，把面积较大的轮廓点去掉
+    area = cv2.contourArea(cs[0])
+    if area >= max_area:
+        continue
 
     # 计算最小外接矩形
     rect = cv2.minAreaRect(cs[0])

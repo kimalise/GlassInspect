@@ -6,7 +6,8 @@ import json
 # image_root = "../data/241015_094222_820_2/images"
 # image_root = "../data/241015_125935_725_16/images"
 # root = "../data/241015_101025_566_4"
-root = "../data/241015_125935_725_16"
+# root = "../data/241015_125935_725_16"
+root = "../data/241016_110832_917_13"
 
 def read_sample_info(json_file):
     with open(json_file, "r", encoding="utf-8") as f:
@@ -47,6 +48,10 @@ image_for_each_camera = [img[:, pixel_range[idx]['first']:pixel_range[idx]['seco
 full_image = np.hstack(image_for_each_camera) # 直接拼接的话多个相机采集的图像之间是有重叠的地方
 
 full_image = cv2.rotate(full_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+if os.path.exists(os.path.join(root, "kim")):
+    os.remove(os.path.join(root, "kim"))
+os.mkdir(os.path.join(root, "kim"))
 
 cv2.imwrite(os.path.join(root, "kim", "original_image.png"), full_image)
 
