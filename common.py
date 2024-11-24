@@ -64,6 +64,37 @@ def extract_glass_area(image):
 
     return glass_image
 
+def merge_rotated_rectangles(rectangles):
+    def are_rects_intersecting(rect1, rect2):
+        """检测两个旋转矩形是否相交"""
+        intersection, points = cv2.rotatedRectangleIntersection(rect1, rect2)
+        return intersection != cv2.INTERSECT_NONE
+
+    # 将矩形框分组
+    groups = []
+    for rect in rectangles:
+        merged = False
+        for group in groups:
+            if any(are_rects_intersecting(rect, other) for other in group):
+                group.append(rect)
+                merged = True
+                break
+        if not merged:
+            groups.append([rect])
+
+    # 计算每组的最小外接旋转矩形
+    merged_rectangles = []
+    for group in groups:
+        points = []
+        for rect in group:
+            box_points = cv2.boxPoints(rect)  # 获取旋转矩形的顶点
+            points.extend(box_points)
+        points = np.array(points)
+        merged_rect = cv2.minAreaRect(points)  # 计算最小外接旋转矩形
+        merged_rectangles.append(merged_rect)
+
+    return merged_rectangles
+
 def inspect_glass_defect1(glass_image):
     # image_path = os.path.join(root, "kim", "origin_glass_image.png")
     # image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
@@ -77,13 +108,15 @@ def inspect_glass_defect1(glass_image):
     dark_pixels = (glass_image < dynamic_threshold).astype(np.uint8) * 255
 
     # 形态学: 膨胀,目的是为了把临近的多个区域合并
-    dilate_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    # dilate_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    dilate_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
     dark_pixels = cv2.dilate(dark_pixels, dilate_kernel, iterations=1)
 
     # num_labels, labels = cv2.connectedComponents(dark_pixels)
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(dark_pixels)
 
-    min_area = 100
+    min_area = 300
+    # min_area = 50
     max_area = 1000000
 
     selected_regions = []
@@ -102,6 +135,7 @@ def inspect_glass_defect1(glass_image):
     output_image = cv2.cvtColor(glass_image, cv2.COLOR_GRAY2BGR)
 
     # 遍历每个轮廓，计算最小外接矩形
+    rects = []
     for region in selected_regions:
         selected_image_1 = np.zeros_like(dark_pixels, dtype=np.uint8)
         selected_image_1[labels == region] = 255
@@ -114,7 +148,11 @@ def inspect_glass_defect1(glass_image):
 
         # 计算最小外接矩形
         rect = cv2.minAreaRect(cs[0])
+        rects.append(rect)
 
+    rects = merge_rotated_rectangles(rects)
+
+    for rect in rects:
         # 获取矩形的4个顶点坐标
         box = cv2.boxPoints(rect)
         box = np.int0(box)  # 转换为整数

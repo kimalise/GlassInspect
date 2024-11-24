@@ -14,6 +14,11 @@ def inspect1(root_path):
     return inspect_result
 
 if __name__ == '__main__':
-    root_path = "data/241016_110832_917_13"
+    # root_path = "data/241016_110832_917_13"
+    # root_path = "data/241015_125935_725_16"
+    # root_path = "data/241017_114125_024_6"
+    # root_path = "data/241017_130526_526_12"
+    # root_path = "data/241017_145755_657_17"
+    root_path = "data/241017_153342_234_18"
     inspect1(root_path)
     print('finish')
