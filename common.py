@@ -43,24 +43,32 @@ def extract_glass_area(image):
 
     color_image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
+    found_glass_area = False
     for contour in contours:
         area = cv2.contourArea(contour)
 
         if area > 10000000:
+            found_glass_area = True
             x, y, w, h = cv2.boundingRect(contour)
             cv2.rectangle(color_image, (x, y), (x + w, y + h), (0, 255, 0), 100)
+            break
 
-    # 保存玻璃区域图像
-    border = 1450
-    x = x - border
-    y = y - border
-    w = w + border * 2
-    h = h + border * 2
-    x = 0 if x < 0 else x
-    y = 0 if y < 0 else y
+    if found_glass_area:
+        # 保存玻璃区域图像
+        border = 1450
+        x = x - border
+        y = y - border
+        w = w + border * 2
+        h = h + border * 2
+        x = 0 if x < 0 else x
+        y = 0 if y < 0 else y
 
-    glass_image = image[y: image.shape[0] if y + h > image.shape[0] else y + h,
-                  x: image.shape[1] if x + w > image.shape[1] else x + w]
+        glass_image = image[y: image.shape[0] if y + h > image.shape[0] else y + h,
+                      x: image.shape[1] if x + w > image.shape[1] else x + w]
+
+    else:
+        print("No glass area found")
+        glass_image = image
 
     return glass_image
 
